@@ -33,10 +33,13 @@ exports.createOrder = async (req, res) => {
     const orderUser = await User.findById(user || req.user?._id);
 
     // Build order items HTML
-    const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:8080';
     const itemsHtml = orderItems.map(item => {
       // Ensure image URL is absolute for email clients
-      const imgUrl = item.image.startsWith('/') ? `${FRONTEND_URL}${item.image}` : item.image;
+      let imgUrl = item.image;
+      if (imgUrl && !imgUrl.startsWith('http')) {
+        const baseUrl = process.env.BACKEND_URL || process.env.FRONTEND_URL || 'http://localhost:5000';
+        imgUrl = imgUrl.startsWith('/') ? `${baseUrl}${imgUrl}` : `${baseUrl}/${imgUrl}`;
+      }
       return `
         <tr>
           <td style="padding: 15px; border-bottom: 1px solid #eee;">
