@@ -35,9 +35,9 @@ exports.createOrder = async (req, res) => {
     // Build order items HTML
     const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:8080';
     const itemsHtml = orderItems.map(item => {
-      // Ensure image URL is absolute for email clients
+      // Ensure image URL is absolute for email clients, unless it is a base64 data URI
       let imgUrl = item.image;
-      if (imgUrl && !imgUrl.startsWith('http')) {
+      if (imgUrl && !imgUrl.startsWith('http') && !imgUrl.startsWith('data:')) {
         const baseUrl = process.env.BACKEND_URL || FRONTEND_URL || 'http://localhost:5000';
         imgUrl = imgUrl.startsWith('/') ? `${baseUrl}${imgUrl}` : `${baseUrl}/${imgUrl}`;
       }
