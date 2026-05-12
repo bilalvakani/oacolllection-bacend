@@ -1,4 +1,5 @@
 const Order = require('../models/Order');
+const Product = require('../models/Product');
 const sendEmail = require('../utils/sendEmail');
 
 // @desc    Create new order
@@ -27,6 +28,25 @@ exports.createOrder = async (req, res) => {
     });
 
     const createdOrder = await order.save();
+
+    // Decrement stock for each ordered item based on selectedSize
+    for (const item of orderItems) {
+      if (!item.product) continue;
+      const product = await Product.findById(item.product);
+      if (!product) continue;
+
+      if (item.selectedSize && product.sizes && product.sizes.length > 0) {
+        // Size-based stock: decrement the matching size
+        const sizeIndex = product.sizes.findIndex(
+          (s) => s.label.toLowerCase() === item.selectedSize.toLowerCase()
+        );
+        if (sizeIndex !== -1) {
+          product.sizes[sizeIndex].stock = Math.max(0, product.sizes[sizeIndex].stock - item.qty);
+          product.markModified('sizes');
+          await product.save();
+        }
+      }
+    }
 
     // Fetch user details for the email
     const User = require('../models/User');

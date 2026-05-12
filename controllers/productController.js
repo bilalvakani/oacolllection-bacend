@@ -27,7 +27,7 @@ exports.getProductBySlug = async (req, res) => {
 // Create product (Admin only)
 exports.createProduct = async (req, res) => {
   try {
-    const { name, slug, img, images, cat, price, old, sku, desc, colors } = req.body;
+    const { name, slug, img, images, cat, price, old, sku, desc, colors, sizes } = req.body;
     const product = new Product({
       name,
       slug,
@@ -39,6 +39,7 @@ exports.createProduct = async (req, res) => {
       sku,
       desc,
       colors,
+      sizes: sizes || [],
       rating: 5.0,
       reviews: 0
     });
@@ -52,22 +53,29 @@ exports.createProduct = async (req, res) => {
 // Update product (Admin only)
 exports.updateProduct = async (req, res) => {
   try {
-    const { name, img, images, cat, price, old, sku, desc, colors } = req.body;
-    const product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({ message: 'Product not found' });
+    const { name, img, images, cat, price, old, sku, desc, colors, sizes } = req.body;
 
-    product.name = name ?? product.name;
-    product.slug = name ? name.toLowerCase().replace(/ /g, '-') : product.slug;
-    product.img = img ?? product.img;
-    product.images = images ?? product.images;
-    product.cat = cat ?? product.cat;
-    product.price = price ?? product.price;
-    product.old = old ?? product.old;
-    product.sku = sku ?? product.sku;
-    product.desc = desc ?? product.desc;
-    product.colors = colors ?? product.colors;
+    const updateData = {
+      ...(name !== undefined && { name, slug: name.toLowerCase().replace(/ /g, '-') }),
+      ...(img !== undefined && { img }),
+      ...(images !== undefined && { images }),
+      ...(cat !== undefined && { cat }),
+      ...(price !== undefined && { price }),
+      ...(old !== undefined && { old }),
+      ...(sku !== undefined && { sku }),
+      ...(desc !== undefined && { desc }),
+      ...(colors !== undefined && { colors }),
+      ...(sizes !== undefined && { sizes }),
+    };
 
-    const updatedProduct = await product.save();
+    const updatedProduct = await Product.findByIdAndUpdate(
+      req.params.id,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedProduct) return res.status(404).json({ message: 'Product not found' });
+
     res.json(updatedProduct);
   } catch (err) {
     res.status(400).json({ message: err.message });

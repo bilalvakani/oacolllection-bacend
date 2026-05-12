@@ -1,5 +1,10 @@
 const mongoose = require('mongoose');
 
+const sizeStockSchema = new mongoose.Schema({
+  label: { type: String, required: true }, // e.g. "S", "M", "L", "XL"
+  stock: { type: Number, default: 0 }
+}, { _id: false });
+
 const productSchema = new mongoose.Schema({
   name: { type: String, required: true },
   slug: { type: String, required: true, unique: true },
@@ -14,6 +19,7 @@ const productSchema = new mongoose.Schema({
   sku: { type: String },
   desc: { type: String },
   colors: [String],
+  sizes: [sizeStockSchema],
   createdAt: { type: Date, default: Date.now }
 });
 
