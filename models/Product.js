@@ -18,7 +18,7 @@ const productSchema = new mongoose.Schema({
   badge: { type: String },
   sku: { type: String },
   desc: { type: String },
-  colors: [String],
+  colors: [{ name: String, image: String }],
   sizes: [sizeStockSchema],
   createdAt: { type: Date, default: Date.now }
 });
